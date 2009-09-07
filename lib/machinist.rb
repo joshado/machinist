@@ -35,14 +35,12 @@ module Machinist
     end
     
     def method_missing(symbol, *args, &block)
-      value = @object.send(symbol)
-      
       if attribute_assigned?(symbol)
         # If we've already assigned the attribute, return that.
-        value
-      elsif @adapter.has_association?(@object, symbol) && !value.nil? && value!=[]
+        @object.send(symbol)
+      elsif @adapter.has_association?(@object, symbol) && !@object.send(symbol).blank?
         # If the attribute is an association and is already assigned, return that.
-        value
+        @object.send(symbol)
       else
         # Otherwise generate a value and assign it.
         assign_attribute(symbol, generate_attribute_value(symbol, *args, &block))
