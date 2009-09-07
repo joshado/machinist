@@ -12,6 +12,7 @@ module MachinistActiveRecordSpecs
 
   class Post < ActiveRecord::Base
     has_many :comments
+    has_many :comment_authors, :through=>:comments, :source=>:author
   end
 
   class Comment < ActiveRecord::Base
@@ -104,6 +105,41 @@ module MachinistActiveRecordSpecs
           @comment.post.should == @post
         end
       end
+      
+      describe "on a has_many association the other way around" do
+        before do
+          Comment.blueprint {}
+          Post.blueprint do
+            comments { [Comment.make, Comment.make] } 
+          end
+        end
+        it "should create the children objects" do
+          Post.make.comments.count.should == 2
+        end
+      end
+      
+      describe "on a has_many :through association" do
+        before do
+          Person.blueprint do
+          end
+          Post.blueprint do
+            comment_authors { [Person.make, Person.make] }
+          end
+          Comment.blueprint do
+            post
+            body {"Test"}            
+          end
+        end
+        
+        it "should create the target (the comment_authors) objects" do
+          Post.make.comment_authors.count.should == 2
+
+        end
+        it "should create the required through objects (comments)" do
+          Post.make.comments.count.should == 2
+        end
+      end
+      
     end
 
     describe "plan method" do
